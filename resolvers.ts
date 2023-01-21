@@ -1,6 +1,6 @@
 const resolvers = {
   Query: {
-    jobs: () => [],
+    jobs: () => "s",
   },
 };
 

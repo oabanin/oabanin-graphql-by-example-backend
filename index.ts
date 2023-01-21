@@ -8,7 +8,13 @@ import { makeExecutableSchema } from "@graphql-tools/schema";
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import resolvers from "./resolvers";
+import * as mongoose from "mongoose";
+
 const port = 9000;
+
+mongoose.set("strictQuery", false);
+mongoose.connect("mongodb://admin:admin@localhost:27017/graphql-course");
+
 const jwtSecret = Buffer.from("Zn8Q5tyZ/G1MHltc4F/gTkVJMlrbKiZt", "base64");
 
 const typeDefs = fs.readFileSync("./schema.graphql", { encoding: "utf-8" });
