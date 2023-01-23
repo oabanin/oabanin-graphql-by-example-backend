@@ -1,9 +1,9 @@
 import mongoose, { Schema } from "mongoose";
 
-const job = new Schema({
+const jobs = new Schema({
   title: String,
   description: String,
-  companyID: String,
+  compId: String,
 });
 
-export default mongoose.model("Jobs", job);
+export default mongoose.model("Jobs", jobs);

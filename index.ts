@@ -12,11 +12,7 @@ import * as mongoose from "mongoose";
 
 const port = 9000;
 
-mongoose.set("strictQuery", false);
-mongoose.connect("mongodb://admin:admin@localhost:27017/graphql-course");
-
 const jwtSecret = Buffer.from("Zn8Q5tyZ/G1MHltc4F/gTkVJMlrbKiZt", "base64");
-
 const typeDefs = fs.readFileSync("./schema.graphql", { encoding: "utf-8" });
 
 const server = new ApolloServer({
@@ -27,8 +23,14 @@ const server = new ApolloServer({
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 async function startServer() {
-  await server.start();
+  mongoose.set("strictQuery", false);
+  mongoose
+    .connect("mongodb://admin:admin@localhost:27017/graphqlByExample")
+    .then(() => console.log("MongoDB Connected"))
+    .catch((err) => console.log(err));
+
   const app = express();
+  await server.start();
   app.use(
     cors(),
     bodyParser.json(),
@@ -39,6 +41,7 @@ async function startServer() {
     })
   );
   app.use("/graphql", expressMiddleware(server));
+
   app.listen(port, () => console.log(`Server running on port ${port}`));
 }
 
