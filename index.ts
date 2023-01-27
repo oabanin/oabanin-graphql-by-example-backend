@@ -33,12 +33,17 @@ async function startServer() {
     cors(),
     bodyParser.json(),
     expressjwt({
-      algorithms: ["none"],
+      algorithms: ["HS256"],
       credentialsRequired: false,
       secret: jwtSecret,
     })
   );
-  app.use("/graphql", expressMiddleware(server));
+  app.use(
+    "/graphql",
+    expressMiddleware(server, {
+      context: async ({ req }: { req: any }) => ({ user: req.auth }),
+    })
+  );
   app.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const user = await Users.findOne({ email }).exec();

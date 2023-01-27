@@ -1,6 +1,12 @@
 import Jobs from "./models/jobs";
 import Companies from "./models/companies";
 
+type ICreateJobInput = {
+  title: string;
+  description: string;
+  companyId: string;
+};
+
 const resolvers = {
   Query: {
     company: (root: any, args: { id: string }) => {
@@ -12,10 +18,12 @@ const resolvers = {
   Mutation: {
     createJob: (
       root: any,
-      {
-        input,
-      }: { input: { title: string; description: string; companyId: string } }
+      { input }: { input: ICreateJobInput },
+      { user }: { user: any }
     ) => {
+      if (!user) {
+        throw new Error("Unauthorized");
+      }
       const job = new Jobs({
         title: input.title,
         description: input.description,
