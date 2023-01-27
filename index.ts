@@ -3,12 +3,12 @@ import cors from "cors";
 import * as fs from "fs";
 import express from "express";
 import { expressjwt } from "express-jwt";
-import { Jwt } from "jsonwebtoken";
-import { makeExecutableSchema } from "@graphql-tools/schema";
+import jwt from "jsonwebtoken";
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import resolvers from "./resolvers";
 import * as mongoose from "mongoose";
+import Users from "./models/users";
 
 const port = 9000;
 
@@ -19,8 +19,6 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
 });
-
-const schema = makeExecutableSchema({ typeDefs, resolvers });
 
 async function startServer() {
   mongoose.set("strictQuery", false);
@@ -41,6 +39,16 @@ async function startServer() {
     })
   );
   app.use("/graphql", expressMiddleware(server));
+  app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+    const user = await Users.findOne({ email }).exec();
+    if (!user || user.password !== password) {
+      res.sendStatus(401);
+      return;
+    }
+    const token = jwt.sign({ sub: user.id }, jwtSecret);
+    res.send({ token });
+  });
 
   app.listen(port, () => console.log(`Server running on port ${port}`));
 }
