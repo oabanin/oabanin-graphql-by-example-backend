@@ -25,9 +25,8 @@ const resolvers = {
         throw new Error("Unauthorized");
       }
       const job = new Jobs({
-        title: input.title,
-        description: input.description,
-        compId: input.companyId,
+        compId: user.companyId,
+        ...input,
       });
       job.save();
       return job;

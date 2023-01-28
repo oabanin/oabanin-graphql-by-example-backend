@@ -1,6 +1,5 @@
-import bodyParser from "body-parser";
 import cors from "cors";
-import * as fs from "fs";
+import { readFile } from "fs/promises";
 import express from "express";
 import { expressjwt } from "express-jwt";
 import jwt from "jsonwebtoken";
@@ -10,15 +9,8 @@ import resolvers from "./resolvers";
 import * as mongoose from "mongoose";
 import Users from "./models/users";
 
-const port = 9000;
-
-const jwtSecret = Buffer.from("Zn8Q5tyZ/G1MHltc4F/gTkVJMlrbKiZt", "base64");
-const typeDefs = fs.readFileSync("./schema.graphql", { encoding: "utf-8" });
-
-const server = new ApolloServer({
-  typeDefs,
-  resolvers,
-});
+const PORT = 9000;
+const JWT_SECRET = Buffer.from("Zn8Q5tyZ/G1MHltc4F/gTkVJMlrbKiZt", "base64");
 
 async function startServer() {
   mongoose.set("strictQuery", false);
@@ -28,20 +20,30 @@ async function startServer() {
     .catch((err) => console.log(err));
 
   const app = express();
+
+  const typeDefs = await readFile("./schema.graphql", "utf-8");
+
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+  });
   await server.start();
+
   app.use(
     cors(),
-    bodyParser.json(),
+    express.json(),
     expressjwt({
       algorithms: ["HS256"],
       credentialsRequired: false,
-      secret: jwtSecret,
+      secret: JWT_SECRET,
     })
   );
   app.use(
     "/graphql",
     expressMiddleware(server, {
-      context: async ({ req }: { req: any }) => ({ user: req.auth }),
+      context: async ({ req }: { req: any }) => ({
+        user: req.auth && (await Users.findById(req.auth.sub)),
+      }),
     })
   );
   app.post("/login", async (req, res) => {
@@ -51,11 +53,11 @@ async function startServer() {
       res.sendStatus(401);
       return;
     }
-    const token = jwt.sign({ sub: user.id }, jwtSecret);
+    const token = jwt.sign({ sub: user.id }, JWT_SECRET);
     res.send({ token });
   });
 
-  app.listen(port, () => console.log(`Server running on port ${port}`));
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
 
 startServer();
