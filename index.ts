@@ -8,6 +8,12 @@ import { expressMiddleware } from "@apollo/server/express4";
 import resolvers from "./resolvers";
 import * as mongoose from "mongoose";
 import Users from "./models/users";
+import DataLoader from "dataloader";
+import Companies from "./models/companies";
+
+const getCompaniesByIds = async (ids: readonly string[]) => {
+  return ids.map((item) => Companies.findById(item).exec().then(console.log));
+};
 
 const PORT = 9000;
 const JWT_SECRET = Buffer.from("Zn8Q5tyZ/G1MHltc4F/gTkVJMlrbKiZt", "base64");
@@ -43,6 +49,7 @@ async function startServer() {
     expressMiddleware(server, {
       context: async ({ req }: { req: any }) => ({
         user: req.auth && (await Users.findById(req.auth.sub)),
+        companyLoader: new DataLoader(getCompaniesByIds),
       }),
     })
   );

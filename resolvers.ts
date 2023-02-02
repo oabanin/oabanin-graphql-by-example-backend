@@ -1,5 +1,6 @@
 import Jobs from "./models/jobs";
 import Companies from "./models/companies";
+import * as DataLoader from "dataloader";
 
 type ICreateJobInput = {
   title: string;
@@ -25,8 +26,14 @@ const resolvers = {
     company: (root: any, args: { id: string }) => {
       return Companies.findById(args.id).exec();
     },
-    job: (root: any, args: { id: string }) => Jobs.findById(args.id).exec(),
-    jobs: () => Jobs.find({}).exec(),
+    job: (root: any, args: { id: string }) => {
+      console.log("get job BY id", args.id);
+      return Jobs.findById(args.id).exec();
+    },
+    jobs: () => {
+      console.log("get jobs");
+      return Jobs.find({}).exec();
+    },
   },
 
   Mutation: {
@@ -69,13 +76,19 @@ const resolvers = {
     },
   },
   Job: {
-    company: async (job: { compId: string }) => {
-      return Companies.findById(job.compId).exec();
+    company: async (
+      job: { compId: string },
+      _: any,
+      { companyLoader }: { companyLoader: any }
+    ) => {
+      return await companyLoader.load(job.compId).then(console.log); //dataloader
+      //return Companies.findById(job.compId).exec().then(console.log); //no dataloader
     },
   },
   Company: {
     jobs: async (company: { _id: string }) => {
-      return Jobs.find({ compId: company._id }).exec();
+      console.log("get Job BY company id", company._id);
+      return Jobs.find({ compId: company._id }).exec(); // no dataloader
     },
   },
 };
