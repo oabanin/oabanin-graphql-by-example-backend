@@ -12,7 +12,7 @@ import DataLoader from "dataloader";
 import Companies from "./models/companies";
 
 const getCompaniesByIds = async (ids: readonly string[]) => {
-  return ids.map((item) => Companies.findById(item).exec().then(console.log));
+  return ids.map((item) => Companies.findById(item).exec());
 };
 
 const PORT = 9000;
